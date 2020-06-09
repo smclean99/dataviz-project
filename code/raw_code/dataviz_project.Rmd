@@ -137,6 +137,9 @@ steak <- read.csv("data/raw_data/steak-risk-survey.csv", stringsAsFactors = FALS
 ```{r meat-explore, warning=FALSE} 
 ## Include code here to explore the data 
 ## and answer the questions in the exercise
+dim(steak)
+steak %>% filter(Do.you.eat.steak. == "Yes") %>% summarise(n=n())
+unique(steak$How.do.you.like.your.steak.prepared.)
 ```
 
 ## Wrangle the Data
@@ -162,7 +165,7 @@ pref <- steak %>%
 ## generate the plot 
 p <- ggplot(pref) +
   ## specify you want to generate a bar chart
-  function_name(aes(x = steak_pref, y = prop, fill = steak_pref),
+  geom_bar(aes(x = steak_pref, y = prop, fill = steak_pref),
                 stat = 'identity', 
                 width = 0.7) + 
   ## this adds text labels (you don't have to change anything here)
@@ -174,32 +177,32 @@ p <- ggplot(pref) +
             size = 5,
             color = "grey40") +
   ## flip coordinates to make horizontal box plot
-  function_name() +
+  coord_flip() +
   ## change the colors of the bars
-  function_name(values = c("#370B01", 
+  scale_fill_manual(values = c("#370B01", 
                            "#70402C",
                            "#955732", 
                            "#B36153",
                            "#B5413F")) +
   ## change the scale/labels of the steak-wellness variable (x-axis)
-  function_name(limits = levels(fct_rev(pref$steak_pref)),
+  scale_x_discrete(limits = levels(fct_rev(pref$steak_pref)),
                 labels = c("Well", 
                            "Medium Well" = "Medium-well",
                            "Medium",
-                           "Medium rare"="Medium-rare",
+                           "Medium rare" = "Medium-rare",
                            "Rare")) +
   ## change the scale/lables of the percent axis (y-axis)
-  function_name(labels = scales::percent, 
+  scale_y_continuous(labels = scales::percent, 
                 expand = c(mult = c(0,0), 
                            add = c(0,0.035))) +
   ## change the title, subtitle, and caption
-  function_name(title="'How Do You Like Your Steak Prepared?'", 
+  labs(title="'How Do You Like Your Steak Prepared?'", 
                 subtitle="From a survey of 432 steak-eating Americans",
                 caption="FiveThirtyEight: Surveymonkey") +
   ## change the theme (use ggthemes)
-  function_name() +
+  theme_bw() +
   ## fine tune the theme
-  function_name(axis.text = element_text(size = 14), 
+  theme(axis.text = element_text(size = 14), 
                 title = element_text(size = 16), 
                 legend.position="none", 
                 plot.caption=element_text(size = 12), 
@@ -215,19 +218,87 @@ p
 
 ```{r save-plot, warning=FALSE}
 ## save plot to figures/explanatory_figures directory
-ggsave(plot = OBJECT_NAME, filename = FILENAME, width = 8, height = 4)
+ggsave(plot = p, filename = "steak_plot.png", width = 8, height = 4)
 ```
 
 ## Visualize the Data
 
-```{r meat-plot, warning=FALSE} 
+```{r mael-meat-plot, warning=FALSE} 
 ### Explore the data -- create your own plot!
+## wrangle the steak data set
+male_steak <- filter(steak, Gender == "Male")
+male_pref <- male_steak %>% 
+  mutate(steak_pref =
+         factor(How.do.you.like.your.steak.prepared.,
+                             levels = c("Well",
+                                        "Medium Well",
+                                        "Medium",
+                                        "Medium rare",
+                                        "Rare"))) %>% 
+  filter(steak_pref != "") %>% 
+  group_by(steak_pref) %>% 
+  summarise(n = n()) %>%
+  mutate(prop = n / sum(n))
+```
 
+## Visualize the Data
+
+```{r male-visualize, warning=FALSE}
+## generate the plot 
+p <- ggplot(male_pref) +
+  ## specify you want to generate a bar chart
+  geom_bar(aes(x = steak_pref, y = prop, fill = steak_pref),
+                stat = 'identity', 
+                width = 0.7) + 
+  ## this adds text labels (you don't have to change anything here)
+  geom_text(aes(label = paste0(as.integer(prop*100),"%"),
+                x = steak_pref,
+                y = prop), 
+            stat= "identity", 
+            hjust = -0.2, 
+            size = 5,
+            color = "grey40") +
+  ## flip coordinates to make horizontal box plot
+  coord_flip() +
+  ## change the colors of the bars
+  scale_fill_manual(values = c("#370B01", 
+                           "#70402C",
+                           "#955732", 
+                           "#B36153",
+                           "#B5413F")) +
+  ## change the scale/labels of the steak-wellness variable (x-axis)
+  scale_x_discrete(limits = levels(fct_rev(male_pref$steak_pref)),
+                labels = c("Well", 
+                           "Medium Well" = "Medium-well",
+                           "Medium",
+                           "Medium rare" = "Medium-rare",
+                           "Rare")) +
+  ## change the scale/lables of the percent axis (y-axis)
+  scale_y_continuous(labels = scales::percent, 
+                expand = c(mult = c(0,0), 
+                           add = c(0,0.035))) +
+  ## change the title, subtitle, and caption
+  labs(title="'How Do Males Like Their Steak Prepared?'", 
+                subtitle="From a survey of 246 steak-eating American Males",
+                caption="FiveThirtyEight: Surveymonkey") +
+  ## change the theme (use ggthemes)
+  theme_bw() +
+  ## fine tune the theme
+  theme(axis.text = element_text(size = 14), 
+                title = element_text(size = 16), 
+                legend.position="none", 
+                plot.caption=element_text(size = 12), 
+                panel.grid.major = element_blank(), 
+                panel.grid.minor = element_blank(),
+                axis.text.x = element_blank() 
+  )
+
+p
 ```
 
 ## Save this plot 
 
-```{r save-meat-plot, warning=FALSE}
+```{r save-male-plot, warning=FALSE}
 ## save plot to figures/explanatory_figures directory
-ggsave(plot = OBJECT_NAME, filename = DIFFERENT_FILENAME)
+ggsave(plot = p, filename = "male_steak_plot.png", width = 8, height = 4)
 ```
